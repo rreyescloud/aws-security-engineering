@@ -44,6 +44,24 @@ def save_state(state):
     STATE_FILE.write_text(json.dumps(state, indent=2, default=str))
 
 
+# --- helpers -----------------------------------------------------------------
+
+def ignore_missing(delete_call, *codes):
+    """Run a delete call, tolerating the resource already being gone.
+
+    Keeps teardown idempotent: pass the error codes AWS returns when the resource no longer
+    exists, for example ignore_missing(lambda: iam.delete_role(RoleName=n), "NoSuchEntity").
+    Returns True if the call deleted something, False if it was already gone.
+    """
+    try:
+        delete_call()
+    except ClientError as e:
+        if e.response["Error"]["Code"] not in codes:
+            raise
+        return False
+    return True
+
+
 # --- session -----------------------------------------------------------------
 
 def make_session(args):
@@ -107,12 +125,11 @@ def teardown(session, account_id, state):
     # Delete in reverse dependency order, tolerating already-deleted resources:
     #
     # if "role_arn" in state:
-    #     try:
-    #         session.client("iam").delete_role(RoleName=f"{PREFIX}-target")
-    #         print("  deleted role")
-    #     except ClientError as e:
-    #         if e.response["Error"]["Code"] != "NoSuchEntity":
-    #             raise
+    #     iam = session.client("iam")
+    #     deleted = ignore_missing(
+    #         lambda: iam.delete_role(RoleName=f"{PREFIX}-target"), "NoSuchEntity"
+    #     )
+    #     print("  deleted role" if deleted else "  role already gone")
     #     state.pop("role_arn")
     #     save_state(state)
     raise NotImplementedError("implement teardown for this scenario")
