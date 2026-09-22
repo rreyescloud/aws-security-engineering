@@ -1,0 +1,43 @@
+# Python / IDE
+.venv/
+venv/
+.idea/
+.vscode/
+__pycache__/
+*.pyc
+.DS_Store
+*.env
+.env.*
+.claude/
+
+# Credentials & crypto material — never commit
+*.key
+*.pem
+*.csr
+*.srl
+*.p12
+*.pfx
+certs/
+credentials
+*_accesskeys.csv
+
+# Deployed-resource state (contains live account and resource IDs)
+resources.json
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+terraform.tfvars
+
+# Internal / customer material — never publish
+supops/
+correspondence_*.md
+*_correspondence*.md
+internal_docs/
+case_mapping.md
+_incoming/
+
+# Raw captures that may carry customer data; publish only sanitized excerpts
+*.pcap
+*.pcapng
+raw_logs/

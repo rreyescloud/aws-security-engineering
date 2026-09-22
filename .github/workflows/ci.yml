@@ -1,0 +1,71 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  secrets:
+    name: secret scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  iac:
+    name: iac scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: checkov
+        uses: bridgecrewio/checkov-action@master
+        with:
+          directory: .
+          quiet: true
+          soft_fail: false
+          framework: terraform,cloudformation,json,yaml
+
+  python:
+    name: python lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: compile
+        run: python -m compileall -q .
+      - name: ruff
+        run: |
+          pip install ruff
+          ruff check .
+
+  leaked-identifiers:
+    name: identifier scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: fail on unsanitized identifiers
+        run: |
+          # 12-digit account ids and internal references must never reach main.
+          # Placeholders such as <LAB_ACCOUNT_ID> are the only accepted form.
+          if grep -rInE '\b[0-9]{12}\b' --include='*.md' --include='*.py' --include='*.sh' \
+              --include='*.tf' --include='*.json' --include='*.yaml' --include='*.drawio' . ; then
+            echo "::error::bare 12-digit account id found — replace with a placeholder"
+            exit 1
+          fi
+          if grep -rInEi 'isengard|midway|\.a2z\.com|\.corp\.amazon\.com|amazon\.dev' \
+              --include='*.md' --include='*.py' --include='*.sh' --include='*.tf' . ; then
+            echo "::error::internal reference found — use the public equivalent"
+            exit 1
+          fi
