@@ -45,6 +45,7 @@ tracks/
             └── detections/           rule definitions (EventBridge, Security Hub, Sigma)
 docs/
 ├── Conventions.md                    scenario format, id scheme, sanitization rules
+├── Learning-Plan.md                  the twelve-week plan each scenario comes from
 └── MITRE-Coverage.md                 which ATT&CK techniques are covered, and by what
 _template/                            copy this to start a scenario
 ```
