@@ -65,6 +65,6 @@ python deploy_lab.py teardown --profile <your-aws-profile>
 Run these only in a dedicated lab account. Several scenarios intentionally create detectable
 malicious-looking activity, and some deliberately misconfigure a control before hardening it.
 
-## Author
+## About
 
-Rreyes Cloud — Cloud Network & Security Engineer
+**Rreyes Cloud** — Networking & Security Solutions on AWS
